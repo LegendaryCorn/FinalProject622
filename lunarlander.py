@@ -2,8 +2,10 @@ import gym
 import time
 import numpy as np
 import random
+import multiprocessing
 
 SEED = 128
+NUM_PROCESSES = 10
 
 LEARNING_RATE = 0.20
 
@@ -12,8 +14,7 @@ EPSILON_REDUCTION = 0.00000010
 EPSILON_MIN = 0.005
 
 DISCOUNT = 0.999
-EPISODES = 1000000
-RENDER_EPISODE = 40000000
+EPISODES = 5000
 AVG_EPISODE = 500
 
 DISCRETE_OS_SIZE = [20, 20, 12, 12, 12, 12, 4, 4]
@@ -22,7 +23,6 @@ DISCRETE_OS_MAX = [ 1,  1.5,  3,  3,  1.5,  3, 1, 1]
 
 Q_INIT_MIN = -0.01
 Q_INIT_MAX = 0
-
 
 def get_state_from_observation(observation):
 
@@ -42,14 +42,13 @@ def get_state_from_observation(observation):
 def get_action_from_state(q, state):
     return np.argmax(q[state])
 
-
-def main():
+def q_learning(seed):
     env = gym.make('LunarLander-v2')
 
-    np.random.seed(SEED)
-    random.seed(SEED)
-    env.seed(SEED)
-    env.action_space.seed(SEED)
+    np.random.seed(seed)
+    random.seed(seed)
+    env.seed(seed)
+    env.action_space.seed(seed)
     
     env.reset()
 
@@ -62,11 +61,6 @@ def main():
     for e in range(EPISODES):
 
         state = get_state_from_observation(env.reset())
-
-        if e % RENDER_EPISODE == RENDER_EPISODE - 1:
-            render = True
-        else:
-            render = False
 
         done = False
         total_reward = 0
@@ -83,11 +77,6 @@ def main():
             # Get state
             observation, reward, done, _ = env.step(action)
             new_state = get_state_from_observation(observation)
-                
-            # Render
-            if render:
-                env.render()
-                time.sleep(1 / 60)
 
 
             # Calculate new Q
@@ -107,7 +96,7 @@ def main():
                 sum_success_count += 1 if total_reward > 200 else 0
 
                 if e % AVG_EPISODE == AVG_EPISODE - 1:
-                    print(e + 1, sum_avg_reward / AVG_EPISODE, epsilon, sum_success_count)
+                    print(seed, e + 1, sum_avg_reward / AVG_EPISODE, epsilon, sum_success_count)
                     sum_avg_reward = 0
                     sum_success_count = 0
 
@@ -115,6 +104,18 @@ def main():
             state = new_state
 
     env.close()
+    print(seed, " done")
+    return seed
+
+def main():
+    pool = multiprocessing.Pool(processes=NUM_PROCESSES)
+
+    random.seed(SEED)
+    np.random.seed(SEED)
+    np_seeds = np.random.randint(0, 10000000, NUM_PROCESSES)
+    seeds = np_seeds.tolist()
+    
+    outputs = pool.map(q_learning, seeds)
 
 if __name__=="__main__":
     main()
