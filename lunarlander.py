@@ -1,28 +1,28 @@
 import gym
-import time
 import numpy as np
 import random
 import multiprocessing
+import matplotlib.pyplot as plt
 
 SEED = 128
 NUM_PROCESSES = 10
 
-LEARNING_RATE = 0.20
+LEARNING_RATE = 0.15
 
 EPSILON_INIT = 0.9
-EPSILON_REDUCTION = 0.00000010
-EPSILON_MIN = 0.005
+EPSILON_REDUCTION = 0.0000002
+EPSILON_MIN = 0.001
 
 DISCOUNT = 0.999
-EPISODES = 5000
-AVG_EPISODE = 500
+EPISODES = 100000
+EPSIODE_CHECK = 500
 
-DISCRETE_OS_SIZE = [20, 20, 12, 12, 12, 12, 4, 4]
-DISCRETE_OS_MIN = [-1, -0.5, -3, -3, -1.5, -3, 0, 0]
-DISCRETE_OS_MAX = [ 1,  1.5,  3,  3,  1.5,  3, 1, 1]
+DISCRETE_OS_SIZE = [16, 16, 8, 8, 8, 8, 3, 3]
+DISCRETE_OS_MIN = [-1, -0.5, -2, -2, -1.5, -2, 0, 0]
+DISCRETE_OS_MAX = [ 1,  1.5,  2,  0.5,  1.5,  2, 1, 1]
 
-Q_INIT_MIN = -0.01
-Q_INIT_MAX = 0
+Q_INIT_MIN = -200
+Q_INIT_MAX = -199
 
 def get_state_from_observation(observation):
 
@@ -53,17 +53,16 @@ def q_learning(seed):
     env.reset()
 
     num_actions = env.action_space.n
-    sum_avg_reward = 0.0
-    sum_success_count = 0
     q = np.random.uniform(low=Q_INIT_MIN, high=Q_INIT_MAX, size=(DISCRETE_OS_SIZE + [num_actions]))
     epsilon = EPSILON_INIT
+
+    reward_table = np.zeros(EPISODES)
 
     for e in range(EPISODES):
 
         state = get_state_from_observation(env.reset())
-
-        done = False
         total_reward = 0
+        done = False
         while not done:
 
             # Choose a random action (explore)
@@ -81,7 +80,7 @@ def q_learning(seed):
 
             # Calculate new Q
             optimal_future_value = np.max(q[new_state])
-            new_q = q[state + (action,)] + LEARNING_RATE * (reward + DISCOUNT * optimal_future_value - q[state + (action,)])
+            new_q = q[state + (action,)] + LEARNING_RATE * (reward + (DISCOUNT) * optimal_future_value - q[state + (action,)])
             q[state + (action,)] = new_q
 
             # Total reward
@@ -89,33 +88,38 @@ def q_learning(seed):
 
             # Recalculate Epsilon
             epsilon = max(epsilon * (1 - EPSILON_REDUCTION), EPSILON_MIN)
-
-            if done:
-                sum_avg_reward += total_reward
-
-                sum_success_count += 1 if total_reward > 200 else 0
-
-                if e % AVG_EPISODE == AVG_EPISODE - 1:
-                    print(seed, e + 1, sum_avg_reward / AVG_EPISODE, epsilon, sum_success_count)
-                    sum_avg_reward = 0
-                    sum_success_count = 0
-
-            
             state = new_state
+        
+        # Record data
+        reward_table[e] = total_reward
+
+        # Progress Check
+        if(e % EPSIODE_CHECK == 0):
+            print("Seed", seed, "is", "%f%% done."%(100.0 * e / EPISODES), epsilon)
 
     env.close()
-    print(seed, " done")
-    return seed
+    print("Seed", seed, "has finished.")
+    return reward_table
 
 def main():
-    pool = multiprocessing.Pool(processes=NUM_PROCESSES)
 
+    # Seeds
     random.seed(SEED)
     np.random.seed(SEED)
     np_seeds = np.random.randint(0, 10000000, NUM_PROCESSES)
     seeds = np_seeds.tolist()
     
+    # Run
+    pool = multiprocessing.Pool(processes=NUM_PROCESSES)
     outputs = pool.map(q_learning, seeds)
+    np_outputs = np.array(outputs)
+    np_avg_outputs = np.average(np_outputs, 0)
+
+    # Plot
+    plt.plot(range(EPISODES), np_avg_outputs)
+    plt.xlabel("Episode")
+    plt.ylabel("Average Reward")
+    plt.show()
 
 if __name__=="__main__":
     main()
