@@ -7,35 +7,40 @@ import matplotlib.pyplot as plt
 SEED = 128
 NUM_PROCESSES = 10
 
-LEARNING_RATE = 0.15
+LEARNING_RATE = 0.4
 
-EPSILON_INIT = 0.9
-EPSILON_REDUCTION = 0.0000002
+EPSILON_INIT = 0.5
+EPSILON_REDUCTION = 0.000004
 EPSILON_MIN = 0.001
 
 DISCOUNT = 0.999
-EPISODES = 100000
+EPISODES = 10000
 EPSIODE_CHECK = 500
 
-DISCRETE_OS_SIZE = [16, 16, 8, 8, 8, 8, 3, 3]
-DISCRETE_OS_MIN = [-1, -0.5, -2, -2, -1.5, -2, 0, 0]
+DISCRETE_OS_SIZE = [6, 6, 4, 4, 4, 4, 2, 2]
+DISCRETE_OS_MIN = [-1, -0.5, -2,   -2, -1.5, -2, 0, 0]
 DISCRETE_OS_MAX = [ 1,  1.5,  2,  0.5,  1.5,  2, 1, 1]
+FOCUSED_OS_MIN = [-0.1, -0.1, -0.5, -0.5, -0.2, -0.2, 0.5, 0.5]
+FOCUSED_OS_MAX = [ 0.1,  0.1,  0.5,  0.1,  0.2,  0.2, 0.5, 0.5]
 
-Q_INIT_MIN = -200
-Q_INIT_MAX = -199
+Q_INIT_MIN = -100
+Q_INIT_MAX = -99
 
 def get_state_from_observation(observation):
 
     # Calculate the state
-    state = np.array(observation)
-    state = np.array(DISCRETE_OS_SIZE) * (state - np.array(DISCRETE_OS_MIN)) / (np.array(DISCRETE_OS_MAX) - np.array(DISCRETE_OS_MIN))
-    state = state.astype(int)
+    state = np.zeros(len(observation))
+    
     # Handles values that are too large/small
     for i in range(len(state)):
-        if state[i] < 0:
+        if observation[i] < FOCUSED_OS_MIN[i]:
             state[i] = 0
-        if state[i] >= DISCRETE_OS_SIZE[i]:
+        elif observation[i] > FOCUSED_OS_MAX[i]:
             state[i] = DISCRETE_OS_SIZE[i] - 1
+        else:
+            state[i] = ((DISCRETE_OS_SIZE[i] - 2) * (observation[i] - FOCUSED_OS_MIN[i]) / (FOCUSED_OS_MAX[i] - FOCUSED_OS_MIN[i])) + 1
+
+    state = state.astype(int)
 
     return tuple(state)
 
