@@ -7,14 +7,14 @@ import matplotlib.pyplot as plt
 SEED = 128
 NUM_PROCESSES = 10
 
-LEARNING_RATE = 0.4
+LEARNING_RATE = 0.1
 
-EPSILON_INIT = 0.5
-EPSILON_REDUCTION = 0.000004
+EPSILON_INIT = 0.3
+EPSILON_REDUCTION = 0.0000005
 EPSILON_MIN = 0.001
 
 DISCOUNT = 0.999
-EPISODES = 10000
+EPISODES = 40000
 EPSIODE_CHECK = 500
 
 DISCRETE_OS_SIZE = [6, 6, 4, 4, 4, 4, 2, 2]
@@ -23,8 +23,8 @@ DISCRETE_OS_MAX = [ 1,  1.5,  2,  0.5,  1.5,  2, 1, 1]
 FOCUSED_OS_MIN = [-0.1, -0.1, -0.5, -0.5, -0.2, -0.2, 0.5, 0.5]
 FOCUSED_OS_MAX = [ 0.1,  0.1,  0.5,  0.1,  0.2,  0.2, 0.5, 0.5]
 
-Q_INIT_MIN = -100
-Q_INIT_MAX = -99
+Q_INIT_MIN = -1
+Q_INIT_MAX = 0
 
 def get_state_from_observation(observation):
 
