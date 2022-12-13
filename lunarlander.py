@@ -3,6 +3,7 @@ import numpy as np
 import random
 import multiprocessing
 import matplotlib.pyplot as plt
+import time
 
 SEED = 128
 NUM_PROCESSES = 10
@@ -14,8 +15,9 @@ EPSILON_REDUCTION = 0.0000005
 EPSILON_MIN = 0.001
 
 DISCOUNT = 0.999
-EPISODES = 40000
-EPSIODE_CHECK = 500
+EPISODES = 25000
+RENDER_EPISODE = 1000
+EPSIODE_CHECK = 1000
 
 DISCRETE_OS_SIZE = [6, 6, 4, 4, 4, 4, 2, 2]
 DISCRETE_OS_MIN = [-1, -0.5, -2,   -2, -1.5, -2, 0, 0]
@@ -47,7 +49,10 @@ def get_state_from_observation(observation):
 def get_action_from_state(q, state):
     return np.argmax(q[state])
 
-def q_learning(seed):
+def q_learning(input):
+
+    seed = input.seed
+    render = input.render
     env = gym.make('LunarLander-v2')
 
     np.random.seed(seed)
@@ -94,16 +99,22 @@ def q_learning(seed):
             # Recalculate Epsilon
             epsilon = max(epsilon * (1 - EPSILON_REDUCTION), EPSILON_MIN)
             state = new_state
+
+            # Render check
+            if(render and (e % RENDER_EPISODE == 0 or EPISODES - e == 1)):
+                time.sleep(1/30)
+                env.render()
         
         # Record data
         reward_table[e] = total_reward
 
         # Progress Check
-        if(e % EPSIODE_CHECK == 0):
+        if(e % EPSIODE_CHECK == 0 and render):
             print("Seed", seed, "is", "%f%% done."%(100.0 * e / EPISODES), epsilon)
 
     env.close()
-    print("Seed", seed, "has finished.")
+    if(render):
+        print("Seed", seed, "has finished.")
     return reward_table
 
 def main():
@@ -113,10 +124,15 @@ def main():
     np.random.seed(SEED)
     np_seeds = np.random.randint(0, 10000000, NUM_PROCESSES)
     seeds = np_seeds.tolist()
-    
+
+    # Input List
+    inputs = []
+    for i in range(NUM_PROCESSES):
+        inputs.append(Input(seeds[i], i == 0))
+
     # Run
     pool = multiprocessing.Pool(processes=NUM_PROCESSES)
-    outputs = pool.map(q_learning, seeds)
+    outputs = pool.map(q_learning, inputs)
     np_outputs = np.array(outputs)
     np_avg_outputs = np.average(np_outputs, 0)
 
@@ -125,6 +141,11 @@ def main():
     plt.xlabel("Episode")
     plt.ylabel("Average Reward")
     plt.show()
+
+class Input:
+  def __init__(self, seed, render):
+    self.seed = seed
+    self.render = render
 
 if __name__=="__main__":
     main()
