@@ -16,6 +16,7 @@ EPSILON_MIN = 0.001
 
 DISCOUNT = 0.999
 EPISODES = 30000
+RENDER = False
 RENDER_EPISODE = 1000
 EPSIODE_CHECK = 1000
 
@@ -109,13 +110,13 @@ def q_learning(input):
         reward_table[e] = total_reward
 
         # Progress Check
-        if(e % EPSIODE_CHECK == 0 and render):
+        if(e % EPSIODE_CHECK == 0):
             print("Seed", seed, "is", "%f%% done."%(100.0 * e / EPISODES), epsilon)
 
     env.close()
-    if(render):
-        print("Seed", seed, "has finished.")
-    return reward_table
+    print("Seed", seed, "has finished.")
+    output = Output(q, reward_table)
+    return output
 
 def main():
 
@@ -128,13 +129,23 @@ def main():
     # Input List
     inputs = []
     for i in range(NUM_PROCESSES):
-        inputs.append(Input(seeds[i], i == 0))
+        inputs.append(Input(seeds[i], i == 0 and RENDER))
 
     # Run
     pool = multiprocessing.Pool(processes=NUM_PROCESSES)
     outputs = pool.map(q_learning, inputs)
-    np_outputs = np.array(outputs)
-    np_avg_outputs = np.average(np_outputs, 0)
+
+    # Calculate Rewards
+    np_rewards = []
+    for i in range(NUM_PROCESSES):
+        np_rewards.append(outputs[i].rewards)
+    np_avg_outputs = np.average(np.array(np_rewards), 0)
+
+    # Record Q Tables
+    f = open("qmodel", "w")
+    for i in range(NUM_PROCESSES):
+        np.save("qmodels/qmodel" + str(i), outputs[i].q_table)
+    f.close()
 
     # Plot
     plt.plot(range(EPISODES), np_avg_outputs)
@@ -146,6 +157,11 @@ class Input:
   def __init__(self, seed, render):
     self.seed = seed
     self.render = render
+
+class Output:
+  def __init__(self, q_table, rewards):
+    self.q_table = q_table
+    self.rewards = rewards
 
 if __name__=="__main__":
     main()
