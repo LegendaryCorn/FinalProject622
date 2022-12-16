@@ -3,20 +3,12 @@ import numpy as np
 import random
 import multiprocessing
 import matplotlib.pyplot as plt
-import time
+import lunarlandertrain as llt
 import sys
 import os
 
 SEED = 256
 NUM_EPISODES = 1000
-
-# This must match what you inputted for lunarlandertrain!
-DISCRETE_OS_SIZE = [6, 6, 4, 4, 4, 4, 2, 2]
-DISCRETE_OS_MIN = [-1, -0.5, -2,   -2, -1.5, -2, 0, 0]
-DISCRETE_OS_MAX = [ 1,  1.5,  2,  0.5,  1.5,  2, 1, 1]
-FOCUSED_OS_MIN = [-0.1, -0.1, -0.5, -0.5, -0.2, -0.2, 0.5, 0.5]
-FOCUSED_OS_MAX = [ 0.1,  0.1,  0.5,  0.1,  0.2,  0.2, 0.5, 0.5]
-
 
 
 def get_state_from_observation(observation):
@@ -26,12 +18,12 @@ def get_state_from_observation(observation):
     
     # Handles values that are too large/small
     for i in range(len(state)):
-        if observation[i] < FOCUSED_OS_MIN[i]:
+        if observation[i] < llt.FOCUSED_OS_MIN[i]:
             state[i] = 0
-        elif observation[i] > FOCUSED_OS_MAX[i]:
-            state[i] = DISCRETE_OS_SIZE[i] - 1
+        elif observation[i] > llt.FOCUSED_OS_MAX[i]:
+            state[i] = llt.DISCRETE_OS_SIZE[i] - 1
         else:
-            state[i] = ((DISCRETE_OS_SIZE[i] - 2) * (observation[i] - FOCUSED_OS_MIN[i]) / (FOCUSED_OS_MAX[i] - FOCUSED_OS_MIN[i])) + 1
+            state[i] = ((llt.DISCRETE_OS_SIZE[i] - 2) * (observation[i] - llt.FOCUSED_OS_MIN[i]) / (llt.FOCUSED_OS_MAX[i] - llt.FOCUSED_OS_MIN[i])) + 1
 
     state = state.astype(int)
 
@@ -63,17 +55,17 @@ def test_model(input):
     id = input.id
 
     for e in range(NUM_EPISODES):
-        state = get_state_from_observation(env.reset())
+        state = llt.get_state_from_observation(env.reset())
         total_reward = 0
         done = False
 
         while not done:
 
-            action = get_action_from_state(q, state)
+            action = llt.get_action_from_state(q, state)
             
             # Get state
             observation, reward, done, _ = env.step(action)
-            state = get_state_from_observation(observation)
+            state = llt.get_state_from_observation(observation)
 
             # Total reward
             total_reward += reward
@@ -89,7 +81,6 @@ def test_model(input):
 
 def main():
     try:
-        #print(np.load("qmodels/qmodel1.npy"))
         inpList = []
         num_processes = 0
         dir = sys.argv[1]
