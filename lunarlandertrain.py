@@ -21,8 +21,6 @@ RENDER_EPISODE = 1000
 EPSIODE_CHECK = 1000
 
 DISCRETE_OS_SIZE = [6, 6, 4, 4, 4, 4, 2, 2]
-DISCRETE_OS_MIN = [-1, -0.5, -2,   -2, -1.5, -2, 0, 0]
-DISCRETE_OS_MAX = [ 1,  1.5,  2,  0.5,  1.5,  2, 1, 1]
 FOCUSED_OS_MIN = [-0.1, -0.1, -0.5, -0.5, -0.2, -0.2, 0.5, 0.5]
 FOCUSED_OS_MAX = [ 0.1,  0.1,  0.5,  0.1,  0.2,  0.2, 0.5, 0.5]
 
