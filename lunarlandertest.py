@@ -10,32 +10,6 @@ import os
 SEED = 256
 NUM_EPISODES = 1000
 
-
-def get_state_from_observation(observation):
-
-    # Calculate the state
-    state = np.zeros(len(observation))
-    
-    # Handles values that are too large/small
-    for i in range(len(state)):
-        if observation[i] < llt.FOCUSED_OS_MIN[i]:
-            state[i] = 0
-        elif observation[i] > llt.FOCUSED_OS_MAX[i]:
-            state[i] = llt.DISCRETE_OS_SIZE[i] - 1
-        else:
-            state[i] = ((llt.DISCRETE_OS_SIZE[i] - 2) * (observation[i] - llt.FOCUSED_OS_MIN[i]) / (llt.FOCUSED_OS_MAX[i] - llt.FOCUSED_OS_MIN[i])) + 1
-
-    state = state.astype(int)
-
-    return tuple(state)
-
-
-
-def get_action_from_state(q, state):
-    return np.argmax(q[state])
-
-
-
 def test_model(input):
 
     seed = SEED

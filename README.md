@@ -20,6 +20,6 @@ Running the test function will require you to specify the folder with the Q-Tabl
 
 Lunar Lander Train will output several Q-Tables in a directory called "qmodels". The amount of tables produced is by default set to 10. You can use these tables in lunarlandertest.py.
 # Videos
-[This video](https://www.anaconda.com/products/distribution) goes over the code functionality and explains how everything works.
+[This video](https://www.youtube.com/watch?v=0EFzDxW6E6c) goes over the code functionality and explains how everything works.
 
-[This video](https://www.anaconda.com/products/distribution) shows the model improving over time.
+[This video](https://www.youtube.com/watch?v=sQREu5J7qos) shows the model improving over time.
